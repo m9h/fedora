@@ -20,6 +20,7 @@ License: GPL-3.0-or-later AND Apache-2.0 OR MIT AND MIT
 URL:            %{forgeurl}
 Source0:        %{forgesource}
 Source1: t2fanrd.service
+Patch0: t2fanrd-nonempty-0.12.patch
 
 BuildRequires:  cargo-rpm-macros >= 24
 BuildRequires: systemd-rpm-macros
@@ -29,6 +30,7 @@ Simple Fan Daemon for T2 Macs.
 
 %prep
 %forgeautosetup -p1
+rm -f Cargo.lock
 %cargo_prep
 
 %generate_buildrequires
