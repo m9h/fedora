@@ -1,7 +1,30 @@
 #!/usr/bin/bash
 set -e
 
-KERNEL_VERSION=$(cat ./version)
+# Fedora release of the buildroot we're running in, so one script can serve
+# several COPR chroots. `version`/the submodule pin remain the default; a
+# release only needs version.NN + patches.NN when it diverges (e.g. f45 is on
+# kernel 7.2 while f44 is still on 7.1).
+FEDORA_RELEASE=$(rpm -E %fedora)
+if [ -r "./version.${FEDORA_RELEASE}" ]; then
+  KERNEL_VERSION=$(cat "./version.${FEDORA_RELEASE}")
+else
+  KERNEL_VERSION=$(cat ./version)
+fi
+
+if [ -r "./patches.${FEDORA_RELEASE}" ]; then
+  PATCH_REF=$(cat "./patches.${FEDORA_RELEASE}")
+  git -C linux-t2-patches fetch -q origin
+  git -C linux-t2-patches switch -q --detach "$PATCH_REF"
+fi
+
+# The patch series declares the lowest kernel it applies to; refuse rather than
+# emit a kernel with silently-dropped patches.
+PATCH_KVER=$(cut -d= -f2 linux-t2-patches/version)
+if [ "$(printf '%s\n%s\n' "$PATCH_KVER" "$KERNEL_VERSION" | rpmsort | tail -1)" != "$KERNEL_VERSION" ]; then
+  echo "ERROR: patches target $PATCH_KVER but kernel is $KERNEL_VERSION" >&2
+  exit 1
+fi
 
 cd "$sourcedir"
 koji download-build --quiet --arch=src "kernel-$KERNEL_VERSION"
