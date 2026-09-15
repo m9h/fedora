@@ -84,6 +84,22 @@ for config in "${extra_config[@]}"; do
   set_kconfig_x86_64 "$config"
 done
 
+# Fedora ships the media stack modular.  extra_config's CONFIG_MEDIA_*=y
+# (added for t2bce_ave) makes VIDEO_DEV/DVB_CORE default to y (they follow
+# MEDIA_SUPPORT) and pulls I2C_MUX along, tripping the %prep config
+# consistency check.  Modular is sufficient for t2bce_ave=m.
+set_kconfig_x86_64 'CONFIG_MEDIA_SUPPORT=m'
+set_kconfig_x86_64 'CONFIG_VIDEO_DEV=m'
+set_kconfig_x86_64 'CONFIG_DVB_CORE=m'
+set_kconfig_x86_64 'CONFIG_I2C_MUX=m'
+
+# The APFS patch adds its Kconfig on every arch; only x86_64 gets a value
+# from extra_config, so pin it off elsewhere or the config check reports
+# it unset.
+for file in kernel-aarch64*.config kernel-ppc64le*.config kernel-s390x*.config; do
+  [ -e "$file" ] && write_kconfig_to_file '# CONFIG_APFS_FS is not set' "$file"
+done
+
 set_kconfig_x86_64 'CONFIG_INPUT_SPARSEKMAP=y'
 set_kconfig_x86_64 'CONFIG_MODULE_FORCE_UNLOAD=y'
 set_kconfig_x86_64 'CONFIG_CMDLINE="intel_iommu=on iommu=pt pm_async=off"'
