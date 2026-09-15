@@ -92,12 +92,16 @@ set_kconfig_x86_64 'CONFIG_MEDIA_SUPPORT=m'
 set_kconfig_x86_64 'CONFIG_VIDEO_DEV=m'
 set_kconfig_x86_64 'CONFIG_DVB_CORE=m'
 set_kconfig_x86_64 'CONFIG_I2C_MUX=m'
+# SDR support (from the blanket MEDIA_*=y block) exposes radio drivers
+# Fedora carries no config values for; nothing T2 needs it.
+set_kconfig_x86_64 '# CONFIG_MEDIA_SDR_SUPPORT is not set'
 
 # The APFS patch adds its Kconfig on every arch; only x86_64 gets a value
-# from extra_config, so pin it off elsewhere or the config check reports
-# it unset.
-for file in kernel-aarch64*.config kernel-ppc64le*.config kernel-s390x*.config; do
-  [ -e "$file" ] && write_kconfig_to_file '# CONFIG_APFS_FS is not set' "$file"
+# from extra_config, so pin it off everywhere else or the config check
+# reports it unset.
+for file in kernel-*.config; do
+  case "$file" in kernel-x86_64*) continue ;; esac
+  write_kconfig_to_file '# CONFIG_APFS_FS is not set' "$file"
 done
 
 set_kconfig_x86_64 'CONFIG_INPUT_SPARSEKMAP=y'
