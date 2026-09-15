@@ -45,8 +45,11 @@ sed -i "/%define with_debug /c %define with_debug 0" "kernel.spec"
 sed -i "/Patch1:/a Patch2: t2linux-combined.patch" "kernel.spec"
 sed -i "/ApplyOptionalPatch patch-%{patchversion}-redhat.patch/a ApplyOptionalPatch t2linux-combined.patch" "kernel.spec"
 
-cp "linux-t2-patches/extra_config" "kernel-local"
-cat << 'EOF' >> "kernel-local"
+# extra_config entries go into the x86_64 config files only (see the
+# set_kconfig_x86_64 loop below).  kernel-local applies to every arch, and
+# generic options there (e.g. CONFIG_I2C=y, CONFIG_MEDIA_*=y for t2bce_ave)
+# break the arm64/ppc64le config consistency check in %prep.
+cat << 'EOF' > "kernel-local"
 CONFIG_SPI_HID_APPLE_OF=y
 CONFIG_HID_DOCKCHANNEL=y
 CONFIG_APPLE_DOCKCHANNEL=y
