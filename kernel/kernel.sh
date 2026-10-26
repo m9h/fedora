@@ -54,8 +54,16 @@ function set_kconfig_x86_64 {
 
 set_kconfig_x86_64 'CONFIG_APPLE_BCE=m'
 
+# The macsmc backend patch adds MFD_MACSMC_CORE on every arch; only x86_64 sets it
+for file in kernel-*-fedora.config; do
+  [[ "$file" == kernel-x86_64-* ]] && continue
+  write_kconfig_to_file '# CONFIG_MFD_MACSMC_CORE is not set' "$file"
+done
+
 readarray -t extra_config < linux-t2-patches/extra_config
 for config in "${extra_config[@]}"; do
+  # A blank line would become an empty option and "sed /=/d" every config line
+  [[ "$config" =~ ^(CONFIG_|#\ CONFIG_) ]] || continue
   set_kconfig_x86_64 "$config"
 done
 
