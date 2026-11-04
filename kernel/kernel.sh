@@ -67,6 +67,10 @@ for config in "${extra_config[@]}"; do
   set_kconfig_x86_64 "$config"
 done
 
+# MACSMC_ACPI depends on !SENSORS_APPLESMC, but with applesmc=m it still builds
+# as m, and both drivers then drive the same SMC port
+set_kconfig_x86_64 '# CONFIG_SENSORS_APPLESMC is not set'
+
 set_kconfig_x86_64 'CONFIG_INPUT_SPARSEKMAP=y'
 set_kconfig_x86_64 'CONFIG_MODULE_FORCE_UNLOAD=y'
 set_kconfig_x86_64 'CONFIG_CMDLINE="intel_iommu=on iommu=pt pm_async=off"'
